@@ -20,10 +20,9 @@ public class VirtualPet {
         Scanner scanner = new Scanner(System.in);
         Random random = new Random();
         boolean loggedIn = false;
-        int maxHealth = 8;
-        int maxFood = 5;
-        int maxEnergy = 7;
+        int[] maxStats = new int[3]; // maxHealth, maxFood, maxEnergy
         int money = 0;
+        
         
         // Splash screen
         System.out.println("  /\\_/\\     Jackie CATOPIA");
@@ -70,6 +69,7 @@ public class VirtualPet {
                     System.out.print("Enter your choice: ");
                     int nameChoice = scanner.nextInt();
                     String petName = choosePetName(nameChoice);
+                    allocatePoints(maxStats, random);
                     System.out.println("Your pet, named " + petName + ", has been born!");
                     // Implement pet interaction logic here
                     break;
@@ -78,7 +78,7 @@ public class VirtualPet {
                     // Display instructions
                     break;
                 case "3", "play mini-games", "play games":
-                   // money += playMiniGames(scanner, random);
+                    money += playMiniGames(scanner, random);
                     System.out.println("Your current money: $" + money);
                     break;
                 case "4", "exit":
@@ -118,5 +118,126 @@ public class VirtualPet {
         } 
         return petName;
     }
+    public static void allocatePoints(int[] maxStats, Random random) {
+        int pointsRemaining = 20;
+        for (int i = 0; i < maxStats.length; i++) {
+            if (pointsRemaining <= 0) break; // No points left to allocate
+            int points = random.nextInt(pointsRemaining) + 1; // Allocate 1 to remaining points
+            maxStats[i] = points;
+            pointsRemaining -= points;
+        }
+    }
+    public static int playMiniGames(Scanner scanner, Random random) {
+        System.out.println("\nChoose a mini-game to play:");
+        System.out.println("1. Number Guessing Game");
+        System.out.println("2. Matching Game");
+        System.out.print("Enter your choice: ");
+        int choice = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
+
+        switch (choice) {
+            case 1:
+                return numberGuessingGame(scanner, random);
+            case 2:
+                return matchingGame(scanner, random);
+            default:
+                System.out.println("Invalid choice. No money earned.");
+                return 0;
+        }
+    }
+
+    public static int numberGuessingGame(Scanner scanner, Random random) {
+        int secretNumber = random.nextInt(100) + 1;
+        int attempts = 0;
+
+        System.out.println("Welcome to the Number Guessing Game!");
+        System.out.println("Guess a number between 1 and 100.");
+
+        while (true) {
+            System.out.print("Enter your guess: ");
+            int guess = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+            attempts++;
+
+            if (guess < secretNumber) {
+                System.out.println("Too low!");
+            } else if (guess > secretNumber) {
+                System.out.println("Too high!");
+            } else {
+                System.out.println("Congratulations! You guessed the number in " + attempts + " attempts.");
+                return 10 - attempts; // Example scoring mechanism
+            }
+
+            if (attempts >= 10) {
+                System.out.println("Sorry, you've used all your attempts.");
+                break;
+            }
+        }
+        return 0;
+    }
+    public static int matchingGame(Scanner scanner, Random random) {
+        String letters = "aabbccddeeff";
+        String shuffled = shuffleString(letters);
+        int matches = 0;
+        int attempts = 0;
+        int maxAttempts = 10; // Arbitrary limit for attempts
+
+        System.out.println("\nWelcome to the Matching Game!");
+        System.out.println("Pairs of letters are hidden in the following shuffled string:");
+        System.out.println(shuffled);
+        System.out.println("Can you find all the matching pairs?");
+        System.out.println("You have " + maxAttempts + " attempts.");
+
+        while (attempts < maxAttempts) {
+            System.out.print("Enter the positions of the letters to reveal (e.g., 01): ");
+            String input = scanner.nextLine();
+            attempts++;
+
+            if (input.length() != 2 || !Character.isDigit(input.charAt(0)) || !Character.isDigit(input.charAt(1))) {
+                System.out.println("Invalid input. Please enter two digits (e.g., 01).");
+                continue;
+            }
+
+            int pos1 = Character.getNumericValue(input.charAt(0));
+            int pos2 = Character.getNumericValue(input.charAt(1));
+
+            if (pos1 < 0 || pos1 >= shuffled.length() || pos2 < 0 || pos2 >= shuffled.length()) {
+                System.out.println("Invalid positions. Please enter valid positions.");
+                continue;
+            }
+
+            if (shuffled.charAt(pos1) == letters.charAt(pos1) && shuffled.charAt(pos2) == letters.charAt(pos2)) {
+                System.out.println("Both positions have already been matched. Please try again.");
+            } else if (shuffled.charAt(pos1) == shuffled.charAt(pos2)) {
+                System.out.println("Match found!");
+                matches++;
+                shuffled = revealLetters(shuffled, pos1, pos2);
+            } else {
+                System.out.println("Not a match. Try again.");
+            }
+        }
+
+        System.out.println("Game over! You found " + matches + " matches in " + attempts + " attempts.");
+        return matches * 5 - attempts; // Example scoring mechanism
+    }
+
+    public static String shuffleString(String str) {
+        char[] chars = str.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            int randomIndex = random.nextInt(chars.length);
+            char temp = chars[i];
+            chars[i] = chars[randomIndex];
+            chars[randomIndex] = temp;
+        }
+        return new String(chars);
+    }
+
+    public static String revealLetters(String shuffled, int pos1, int pos2) {
+        char[] revealed = shuffled.toCharArray();
+        revealed[pos1] = shuffled.charAt(pos1);
+        revealed[pos2] = shuffled.charAt(pos2);
+        return new String(revealed);
+    }
+
     
 }
